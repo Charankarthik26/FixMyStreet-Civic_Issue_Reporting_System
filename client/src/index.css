@@ -1,0 +1,565 @@
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-attachment: fixed;
+}
+.app-footer-gradient {
+  background: linear-gradient(180deg, rgba(17,24,39,0) 0%, rgba(17,24,39,0.6) 100%);
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* Leaflet map styles */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+}
+
+/* Custom map popup styles */
+.custom-popup {
+  font-family: 'Inter', sans-serif;
+}
+
+.custom-popup .popup-title {
+  font-weight: 600;
+  font-size: 16px;
+  margin-bottom: 8px;
+  color: #1976d2;
+}
+
+.custom-popup .popup-content {
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.custom-popup .popup-status {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.custom-popup .popup-status.reported {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+.custom-popup .popup-status.acknowledged {
+  background-color: #fff3e0;
+  color: #f57c00;
+}
+
+.custom-popup .popup-status.in_progress {
+  background-color: #e8f5e8;
+  color: #388e3c;
+}
+
+.custom-popup .popup-status.resolved {
+  background-color: #e8f5e8;
+  color: #2e7d32;
+}
+
+.custom-popup .popup-status.rejected {
+  background-color: #ffebee;
+  color: #d32f2f;
+}
+
+/* Loading spinner */
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}
+
+/* Error message */
+.error-message {
+  color: #d32f2f;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+/* Success message */
+.success-message {
+  color: #2e7d32;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+/* Form styles */
+.form-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.form-section {
+  margin-bottom: 24px;
+}
+
+.form-section h3 {
+  margin-bottom: 16px;
+  color: #1976d2;
+}
+
+/* Card styles */
+.issue-card {
+  margin-bottom: 16px;
+  transition: transform 0.2s ease-in-out;
+}
+
+.issue-card:hover {
+  transform: translateY(-2px);
+}
+
+/* Priority indicators */
+.priority-indicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.priority-indicator.low {
+  background-color: #4caf50;
+}
+
+.priority-indicator.medium {
+  background-color: #ff9800;
+}
+
+.priority-indicator.high {
+  background-color: #f44336;
+}
+
+.priority-indicator.critical {
+  background-color: #9c27b0;
+}
+
+/* Status badges */
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.status-badge.reported {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+.status-badge.acknowledged {
+  background-color: #fff3e0;
+  color: #f57c00;
+}
+
+.status-badge.in_progress {
+  background-color: #e8f5e8;
+  color: #388e3c;
+}
+
+.status-badge.resolved {
+  background-color: #e8f5e8;
+  color: #2e7d32;
+}
+
+.status-badge.rejected {
+  background-color: #ffebee;
+  color: #d32f2f;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .form-container {
+    padding: 16px;
+  }
+  
+  .issue-card {
+    margin-bottom: 12px;
+  }
+}
+
+/* Animation classes */
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+/* Issues grid stagger container to reduce layout jank */
+.issues-grid {
+  will-change: transform, opacity;
+}
+
+/* Reveal utilities */
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+}
+.reveal.revealed {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 420ms ease, transform 420ms ease;
+}
+
+/* Parallax-like slow translate for hero content */
+.parallax-slow {
+  will-change: transform;
+  transition: transform 120ms linear;
+}
+
+/* Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-in {
+  animation: slideIn 0.3s ease-in-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Utility classes */
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.mb-1 {
+  margin-bottom: 8px;
+}
+
+.mb-2 {
+  margin-bottom: 16px;
+}
+
+.mb-3 {
+  margin-bottom: 24px;
+}
+
+.mt-1 {
+  margin-top: 8px;
+}
+
+.mt-2 {
+  margin-top: 16px;
+}
+
+.mt-3 {
+  margin-top: 24px;
+}
+
+.p-1 {
+  padding: 8px;
+}
+
+.p-2 {
+  padding: 16px;
+}
+
+.p-3 {
+  padding: 24px;
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-break {
+    page-break-before: always;
+  }
+}
+
+/* Subtle page transition for main outlet */
+#root main {
+  animation: fadeIn 240ms ease-out;
+}
+
+/* Route transition fade */
+.route-fade {
+  animation: fadeIn 260ms ease-out;
+}
+
+/* Themed animated background drift */
+@keyframes bgDrift {
+  0% { background-position: 0px 0px, 0px 0px, 0px 0px; }
+  50% { background-position: 10px 12px, -12px 6px, 0px 0px; }
+  100% { background-position: 0px 0px, 0px 0px, 0px 0px; }
+}
+body {
+  animation: bgDrift 18s ease-in-out infinite;
+}
+
+/* Hero subtle animated glow */
+.hero-section::after {
+  content: '';
+  position: absolute;
+  top: -40%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 900px;
+  height: 300px;
+  pointer-events: none;
+  background: radial-gradient(closest-side, rgba(29,185,84,0.35), rgba(29,185,84,0) 70%);
+  filter: blur(24px);
+  animation: pulseGlow 4s ease-in-out infinite;
+}
+/* Floating accent orbs for hero */
+.hero-orb {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #1DB954;
+  box-shadow: 0 0 16px rgba(29,185,84,0.9);
+  opacity: 0.8;
+  animation: floatOrb 6s ease-in-out infinite;
+}
+.hero-orb.orb-1 { top: 18%; left: 12%; animation-delay: 0.2s; }
+.hero-orb.orb-2 { top: 26%; right: 14%; animation-delay: 1s; }
+.hero-orb.orb-3 { bottom: 10%; left: 20%; animation-delay: 1.6s; }
+
+@keyframes floatOrb {
+  0%, 100% { transform: translateY(0) translateX(0); opacity: 0.8; }
+  50% { transform: translateY(-10px) translateX(6px); opacity: 1; }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.7; transform: translateX(-50%) scale(1); }
+  50% { opacity: 1; transform: translateX(-50%) scale(1.06); }
+}
+
+/* Elevation and hover for feature cards */
+.feature-card {
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 260ms ease, border-color 260ms ease, background 260ms ease;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(8px);
+  padding: 6px;
+}
+
+.feature-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 22px 50px rgba(0,0,0,0.38);
+  border-color: var(--glass-border-hover);
+  background: var(--glass-bg-hover);
+}
+
+/* Feature card icon motion */
+.feature-card .MuiTypography-h3 {
+  transition: transform 220ms ease;
+}
+.feature-card:hover .MuiTypography-h3 {
+  transform: translateY(-3px) scale(1.12);
+}
+
+/* Button interactions */
+button.MuiButton-root {
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 220ms ease, background-color 220ms ease;
+  border-radius: 10px;
+}
+/* AppBar shadow transition */
+.appbar.MuiPaper-elevation1 {
+  transition: box-shadow 200ms ease;
+}
+
+/* Thicker appbar visuals */
+.thick-appbar {
+  backdrop-filter: blur(6px);
+}
+
+/* Nav button underline hover */
+.nav-button.MuiButton-root {
+  position: relative;
+}
+.nav-button.MuiButton-root::after {
+  content: '';
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 6px;
+  height: 2px;
+  background: currentColor;
+  opacity: 0;
+  transform: scaleX(0.6);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+.nav-button.MuiButton-root:hover::after {
+  opacity: 0.9;
+  transform: scaleX(1);
+}
+
+/* Glass slide shine for buttons */
+.glass-btn {
+  position: relative;
+  overflow: hidden;
+}
+.glass-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 120%;
+  height: 100%;
+  background: linear-gradient(120deg, rgba(255,255,255,0.0) 0%, rgba(255,255,255,0.25) 50%, rgba(255,255,255,0.0) 100%);
+  transform: skewX(-20deg);
+}
+.glass-btn:hover::before {
+  animation: slideShine 900ms ease forwards;
+}
+
+@keyframes slideShine {
+  0% { left: -140%; }
+  100% { left: 140%; }
+}
+
+/* Issues list card hover */
+.issue-list-card {
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 260ms ease, border-color 260ms ease, background 260ms ease;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(8px);
+}
+.issue-list-card:hover {
+  transform: translateY(-6px) scale(1.01);
+  box-shadow: 0 20px 48px rgba(0,0,0,0.38);
+  border-color: var(--glass-border-hover);
+  background: var(--glass-bg-hover);
+}
+
+/* Generic glass card for pages */
+.glass-card {
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(8px);
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 260ms ease, border-color 260ms ease, background 260ms ease;
+}
+.glass-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 48px rgba(0,0,0,0.38);
+  border-color: var(--glass-border-hover);
+  background: var(--glass-bg-hover);
+}
+
+/* Glass slide shine on cards */
+.feature-card::before,
+.issue-list-card::before,
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -140%;
+  width: 120%;
+  height: 100%;
+  background: linear-gradient(120deg, rgba(255,255,255,0.0) 0%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.0) 100%);
+  transform: skewX(-20deg);
+}
+.feature-card:hover::before,
+.issue-list-card:hover::before,
+.glass-card:hover::before {
+  animation: slideShine 1200ms ease forwards;
+}
+
+button.MuiButton-root:hover {
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: 0 14px 28px rgba(0,0,0,0.28);
+}
+
+/* CTA pulse for contained primary buttons */
+button.MuiButton-containedPrimary {
+  animation: ctaPulse 2600ms ease-in-out infinite;
+}
+@keyframes ctaPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(29,185,84,0.0); }
+  50% { box-shadow: 0 0 0 10px rgba(29,185,84,0.12); }
+}
+
+button.MuiButton-contained:active,
+button.MuiButton-outlined:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* View Transition API for Theme Toggle */
+::view-transition-group(root) {
+  animation-duration: 600ms;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+::view-transition-new(root),
+::view-transition-old(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-new(root) {
+  z-index: 1;
+}
+
+::view-transition-old(root) {
+  z-index: 0;
+}
