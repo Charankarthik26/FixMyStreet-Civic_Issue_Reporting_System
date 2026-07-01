@@ -10,7 +10,7 @@ export const SocketProvider = ({ children }) => {
 
   useEffect(() => {
     if (isAuthenticated && token) {
-      const newSocket = io('http://localhost:5000', {
+      const newSocket = io(process.env.REACT_APP_API_URL || 'http://localhost:5000', {
         auth: {
           token: token
         }
