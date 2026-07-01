@@ -111,18 +111,6 @@ The system supports multiple languages:
 - Citizen engagement metrics
 
 ## 🤝 Contributing
+Contributions are welcome!
 
-This project is developed for the Smart India Hackathon. Contributions are welcome!
 
-## 📄 License
-
-MIT License - See LICENSE file for details
-
-## 🏆 Hackathon Alignment
-
-This solution addresses the Smart India Hackathon requirements by:
-- Using open-source technologies
-- Implementing Aadhar verification
-- Providing multilingual support
-- Focusing on Jharkhand state requirements
-- Creating a scalable, production-ready system
