@@ -90,10 +90,10 @@ const { upload, handleUploadError } = require('../middleware/upload');
 router.put('/profile', 
   upload.single('profileImage'),
   [
-    body('firstName').optional().trim().isLength({ min: 2, max: 50 }),
-    body('lastName').optional().trim().isLength({ min: 2, max: 50 }),
-    body('phone').optional().isMobilePhone('en-IN'),
-    body('preferredLanguage').optional().isIn(['en', 'hi', 'sat', 'bn', 'or', 'ur', 'sa'])
+    body('firstName').optional().trim().isLength({ min: 1, max: 50 }).withMessage('First Name must be between 1 and 50 characters'),
+    body('lastName').optional().trim().isLength({ min: 1, max: 50 }).withMessage('Last Name must be between 1 and 50 characters'),
+    body('phone').optional().isLength({ min: 10, max: 15 }).isNumeric().withMessage('Phone number must be a valid numeric value of 10 to 15 digits'),
+    body('preferredLanguage').optional().isIn(['en', 'hi', 'sat', 'bn', 'or', 'ur', 'sa']).withMessage('Invalid language selected')
   ], 
   async (req, res) => {
     try {

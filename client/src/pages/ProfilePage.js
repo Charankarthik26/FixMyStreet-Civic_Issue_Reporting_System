@@ -144,7 +144,12 @@ const ProfilePage = () => {
       }
     } catch (err) {
       console.error('Error updating profile:', err);
-      setError(err.response?.data?.message || 'Failed to update profile.');
+      if (err.response?.data?.errors && Array.isArray(err.response.data.errors)) {
+        const errorDetails = err.response.data.errors.map(e => e.msg).join(', ');
+        setError(`${err.response.data.message || 'Validation failed'}: ${errorDetails}`);
+      } else {
+        setError(err.response?.data?.message || 'Failed to update profile.');
+      }
     } finally {
       setSaving(false);
     }
