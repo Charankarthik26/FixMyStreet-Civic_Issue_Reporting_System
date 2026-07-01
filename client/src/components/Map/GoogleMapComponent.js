@@ -23,7 +23,7 @@ const GoogleMapComponent = ({
       }
 
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY || 'AIzaSyDASYZd9MwWKIR2Jkzpu88T8EQtO20Jkvw'}&libraries=places&callback=initMap`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY || 'your_api_key'}&libraries=places&callback=initMap`;
       script.async = true;
       script.defer = true;
       
