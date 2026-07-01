@@ -84,78 +84,115 @@ router.get('/profile', authenticateToken, async (req, res) => {
   }
 });
 
+const { upload, handleUploadError } = require('../middleware/upload');
+
 // Update user profile
-router.put('/profile', [
-  authenticateToken,
-  body('firstName').optional().trim().isLength({ min: 2, max: 50 }),
-  body('lastName').optional().trim().isLength({ min: 2, max: 50 }),
-  body('phone').optional().isMobilePhone('en-IN'),
-  body('preferredLanguage').optional().isIn(['en', 'hi', 'sat', 'bn'])
-], async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
+router.put('/profile', 
+  upload.single('profileImage'),
+  [
+    body('firstName').optional().trim().isLength({ min: 2, max: 50 }),
+    body('lastName').optional().trim().isLength({ min: 2, max: 50 }),
+    body('phone').optional().isMobilePhone('en-IN'),
+    body('preferredLanguage').optional().isIn(['en', 'hi', 'sat', 'bn', 'or', 'ur', 'sa'])
+  ], 
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Validation failed',
+          errors: errors.array()
+        });
+      }
+
+      const { firstName, lastName, phone, preferredLanguage } = req.body;
+      const userId = req.user.id;
+
+      // Build update query dynamically
+      const updates = [];
+      const values = [];
+      let paramCount = 1;
+
+      if (firstName) {
+        updates.push(`first_name = $${paramCount++}`);
+        values.push(firstName);
+      }
+      if (lastName) {
+        updates.push(`last_name = $${paramCount++}`);
+        values.push(lastName);
+      }
+      if (phone) {
+        updates.push(`phone = $${paramCount++}`);
+        values.push(phone);
+      }
+      if (preferredLanguage) {
+        updates.push(`preferred_language = $${paramCount++}`);
+        values.push(preferredLanguage);
+      }
+      if (req.file) {
+        const imageUrl = `/uploads/${req.file.filename}`;
+        updates.push(`profile_image = $${paramCount++}`);
+        values.push(imageUrl);
+      }
+
+      if (updates.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'No fields to update'
+        });
+      }
+
+      updates.push(`updated_at = CURRENT_TIMESTAMP`);
+      values.push(userId);
+
+      await query(
+        `UPDATE users SET ${updates.join(', ')} WHERE id = $${paramCount}`,
+        values
+      );
+
+      // Fetch the updated user profile
+      const updatedUserResult = await query(
+        `SELECT id, email, phone, first_name, last_name, status, is_admin, 
+                department, created_at, last_login, preferred_language, profile_image,
+                aadhar_last_four FROM users WHERE id = $1`,
+        [userId]
+      );
+      const updatedUser = updatedUserResult.rows[0];
+
+      res.json({
+        success: true,
+        message: 'Profile updated successfully',
+        data: {
+          user: {
+            id: updatedUser.id,
+            email: updatedUser.email,
+            phone: updatedUser.phone,
+            firstName: updatedUser.first_name,
+            lastName: updatedUser.last_name,
+            status: updatedUser.status,
+            isAdmin: updatedUser.is_admin,
+            department: updatedUser.department,
+            createdAt: updatedUser.created_at,
+            lastLogin: updatedUser.last_login,
+            preferredLanguage: updatedUser.preferred_language,
+            profileImage: updatedUser.profile_image,
+            aadharLastFour: updatedUser.aadhar_last_four
+          }
+        }
+      });
+
+    } catch (error) {
+      console.error('Profile update error:', error);
+      res.status(500).json({
         success: false,
-        message: 'Validation failed',
-        errors: errors.array()
+        message: 'Profile update failed',
+        error: error.message
       });
     }
-
-    const { firstName, lastName, phone, preferredLanguage } = req.body;
-    const userId = req.user.id;
-
-    // Build update query dynamically
-    const updates = [];
-    const values = [];
-    let paramCount = 1;
-
-    if (firstName) {
-      updates.push(`first_name = $${paramCount++}`);
-      values.push(firstName);
-    }
-    if (lastName) {
-      updates.push(`last_name = $${paramCount++}`);
-      values.push(lastName);
-    }
-    if (phone) {
-      updates.push(`phone = $${paramCount++}`);
-      values.push(phone);
-    }
-    if (preferredLanguage) {
-      updates.push(`preferred_language = $${paramCount++}`);
-      values.push(preferredLanguage);
-    }
-
-    if (updates.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'No fields to update'
-      });
-    }
-
-    updates.push(`updated_at = CURRENT_TIMESTAMP`);
-    values.push(userId);
-
-    await query(
-      `UPDATE users SET ${updates.join(', ')} WHERE id = $${paramCount}`,
-      values
-    );
-
-    res.json({
-      success: true,
-      message: 'Profile updated successfully'
-    });
-
-  } catch (error) {
-    console.error('Profile update error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Profile update failed',
-      error: error.message
-    });
-  }
-});
+  },
+  handleUploadError
+);
 
 // Get user's reported issues
 router.get('/issues', [

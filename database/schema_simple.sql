@@ -24,6 +24,10 @@ CREATE TABLE users (
     aadhar_last_four VARCHAR(4) NOT NULL,
     status user_status DEFAULT 'pending',
     is_admin BOOLEAN DEFAULT FALSE,
+    department VARCHAR(100),
+    last_login TIMESTAMP,
+    preferred_language VARCHAR(10) DEFAULT 'en',
+    profile_image VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

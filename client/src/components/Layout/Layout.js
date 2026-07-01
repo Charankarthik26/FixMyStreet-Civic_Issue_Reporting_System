@@ -448,7 +448,10 @@ const Layout = ({ children }) => {
             {isAuthenticated && (
               <>
                 <IconButton onClick={handleOpenProfileMenu} color="inherit" aria-label="Open profile menu" sx={{ ml: 1, p: 0.5, border: '2px solid rgba(255,255,255,0.2)' }}>
-                  <Avatar sx={{ width: 34, height: 34, bgcolor: 'secondary.main', color: 'secondary.contrastText', fontSize: 15, fontWeight: 'bold' }}>
+                  <Avatar 
+                    src={user?.profileImage ? (user.profileImage.startsWith('http') ? user.profileImage : `http://localhost:5000${user.profileImage}`) : null}
+                    sx={{ width: 34, height: 34, bgcolor: 'secondary.main', color: 'secondary.contrastText', fontSize: 15, fontWeight: 'bold' }}
+                  >
                     {(user?.first_name?.[0] || user?.firstName?.[0] || user?.email?.[0] || 'U').toUpperCase()}
                   </Avatar>
                 </IconButton>
