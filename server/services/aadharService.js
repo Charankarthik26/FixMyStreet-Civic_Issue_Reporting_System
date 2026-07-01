@@ -27,30 +27,8 @@ class AadharService {
       return { valid: false, error: 'Aadhar number must be 12 digits' };
     }
 
-    // For development/testing: Accept any 12-digit number
-    if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV !== 'production') {
-      return { valid: true, cleaned, isTest: true };
-    }
-
-    // Allow test Aadhar numbers for development
-    const testAadharNumbers = [
-      '999999990019',
-      '999999990020', 
-      '999999990021',
-      '123456789012',
-      '111111111111'
-    ];
-
-    if (testAadharNumbers.includes(cleaned)) {
-      return { valid: true, cleaned, isTest: true };
-    }
-
-    // Verhoeff algorithm for real Aadhar validation (only in production)
-    if (!this.verhoeffCheck(cleaned)) {
-      return { valid: false, error: 'Invalid Aadhar number checksum' };
-    }
-
-    return { valid: true, cleaned };
+    // Accept any 12-digit number for ease of demo/testing in all environments
+    return { valid: true, cleaned, isTest: true };
   }
 
   // Verhoeff algorithm implementation for Aadhar validation
@@ -140,26 +118,8 @@ class AadharService {
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // For development: Accept any 6-digit OTP
-    if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV !== 'production') {
-      if (/^\d{6}$/.test(otp)) {
-        return {
-          success: true,
-          data: {
-            status: 'success',
-            message: 'Aadhar verification successful',
-            uid: aadharNumber,
-            name: 'Mock User',
-            dob: '1990-01-01',
-            gender: 'M'
-          },
-          message: 'Aadhar verification completed'
-        };
-      }
-    }
-
-    // Mock successful verification for demo purposes (legacy support)
-    if (otp === '123456' || otp === '000000') {
+    // Accept any 6-digit OTP for smooth demo/testing in all environments
+    if (/^\d{6}$/.test(otp)) {
       return {
         success: true,
         data: {
@@ -237,9 +197,9 @@ class AadharService {
         return { success: false, error: 'Aadhar number already registered' };
       }
 
-      // Verify with UIDAI (or mock for development)
+      // Verify with UIDAI (or mock for development/demo)
       let verificationResult;
-      if (process.env.NODE_ENV === 'production' && this.apiKey) {
+      if (process.env.NODE_ENV === 'production' && this.apiKey && process.env.REAL_UIDAI === 'true') {
         verificationResult = await this.verifyWithUIDAI(cleanedAadhar, otp);
       } else {
         verificationResult = await this.mockVerify(cleanedAadhar, otp);
