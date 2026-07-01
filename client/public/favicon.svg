@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1DB954" />
+      <stop offset="100%" stop-color="#149943" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+  <!-- Beautiful rounded box gradient logo background -->
+  <rect x="8" y="8" width="84" height="84" rx="24" fill="url(#logo-grad)" />
+  
+  <!-- Location Pin icon (PlaceIcon) -->
+  <path d="M50 22 C37.8 22 28 31.8 28 44 C28 58 50 78 50 78 C50 78 72 58 72 44 C72 31.8 62.2 22 50 22 Z M50 51.5 C45.9 51.5 42.5 48.1 42.5 44 C42.5 39.9 45.9 36.5 50 36.5 C54.1 36.5 57.5 39.9 57.5 44 C57.5 48.1 54.1 51.5 50 51.5 Z" fill="#ffffff" />
+</svg>
