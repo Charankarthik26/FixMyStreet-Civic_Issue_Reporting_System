@@ -15,9 +15,11 @@ import {
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import GoogleMapComponent from '../components/Map/GoogleMapComponent';
+import { useAuth } from '../contexts/AuthContext';
 
 const MapPage = () => {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [issues, setIssues] = useState([]);
   const [filteredIssues, setFilteredIssues] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -38,7 +40,12 @@ const MapPage = () => {
 
   const fetchIssues = async () => {
     try {
-      const response = await fetch('/api/issues');
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/issues', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       const data = await response.json();
       
       if (response.ok) {
@@ -101,12 +108,17 @@ const MapPage = () => {
 
   const categories = [
     { value: 'all', label: t('filters.allCategories') },
-    { value: 'electricity', label: t('categories.electricity') },
-    { value: 'water', label: t('categories.water') },
-    { value: 'sanitation', label: t('categories.sanitation') },
-    { value: 'roads', label: t('categories.roads') },
-    { value: 'streetlights', label: t('categories.streetlights') },
-    { value: 'other', label: t('categories.other') }
+    ...((!user || user.role !== 'admin') ? [
+      { value: 'electricity', label: t('categories.electricity') },
+      { value: 'water', label: t('categories.water') },
+      { value: 'sanitation', label: t('categories.sanitation') },
+      { value: 'roads', label: t('categories.roads') },
+      { value: 'streetlights', label: t('categories.streetlights') },
+      { value: 'other', label: t('categories.other') }
+    ] : (user.adminCategories || []).map(cat => ({
+      value: cat,
+      label: cat.charAt(0).toUpperCase() + cat.slice(1)
+    })))
   ];
 
   const statuses = [

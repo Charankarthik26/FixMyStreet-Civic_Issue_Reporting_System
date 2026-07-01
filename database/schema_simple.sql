@@ -45,7 +45,8 @@ CREATE TABLE issues (
     department VARCHAR(50),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    resolved_at TIMESTAMP
+    resolved_at TIMESTAMP,
+    rejection_reason TEXT
 );
 
 -- Upvotes table

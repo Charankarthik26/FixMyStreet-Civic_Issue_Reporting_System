@@ -170,6 +170,11 @@ const Layout = ({ children }) => {
     setMobileOpen(!mobileOpen);
   };
 
+  const navigateAndClose = (path) => {
+    navigate(path);
+    setMobileOpen(false);
+  };
+
   const [hasScrolled, setHasScrolled] = useState(false);
 
   useEffect(() => {
@@ -180,7 +185,7 @@ const Layout = ({ children }) => {
   }, []);
 
   const drawerContent = (
-    <Box onClick={handleDrawerToggle} sx={{ textAlign: 'center', bgcolor: 'background.paper', height: '100%' }}>
+    <Box sx={{ textAlign: 'center', bgcolor: 'background.paper', height: '100%', display: 'flex', flexDirection: 'column' }}>
       <Box sx={{ my: 3, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <Box
           sx={{
@@ -203,9 +208,9 @@ const Layout = ({ children }) => {
       <Divider />
       <List>
         <ListItem disablePadding>
-          <ListItemButton onClick={() => navigate('/')}>
+          <ListItemButton onClick={() => navigateAndClose('/')}>
             <ListItemIcon><HomeIcon /></ListItemIcon>
-            <ListItemText primary="Home" />
+            <ListItemText primary={t('navigation.home')} />
           </ListItemButton>
         </ListItem>
         
@@ -214,13 +219,13 @@ const Layout = ({ children }) => {
             {user?.role === 'user' && (
               <>
                 <ListItem disablePadding>
-                  <ListItemButton onClick={() => navigate('/my-issues')}>
+                  <ListItemButton onClick={() => navigateAndClose('/my-issues')}>
                     <ListItemIcon><DashboardIcon /></ListItemIcon>
-                    <ListItemText primary="My Issues" />
+                    <ListItemText primary={t('navigation.myIssues')} />
                   </ListItemButton>
                 </ListItem>
                 <ListItem disablePadding>
-                  <ListItemButton onClick={() => navigate('/report')}>
+                  <ListItemButton onClick={() => navigateAndClose('/report')}>
                     <ListItemIcon><BugReportIcon /></ListItemIcon>
                     <ListItemText primary={t('navigation.report')} />
                   </ListItemButton>
@@ -229,20 +234,20 @@ const Layout = ({ children }) => {
             )}
             {(user?.role === 'admin' || user?.role === 'super_admin') && (
               <ListItem disablePadding>
-                <ListItemButton onClick={() => navigate('/admin')}>
+                <ListItemButton onClick={() => navigateAndClose('/admin')}>
                   <ListItemIcon><DashboardIcon /></ListItemIcon>
-                  <ListItemText primary="Admin Dashboard" />
+                  <ListItemText primary={t('admin.dashboard')} />
                 </ListItemButton>
               </ListItem>
             )}
             <ListItem disablePadding>
-              <ListItemButton onClick={() => navigate('/issues')}>
+              <ListItemButton onClick={() => navigateAndClose('/issues')}>
                 <ListItemIcon><ListAltIcon /></ListItemIcon>
                 <ListItemText primary={t('navigation.issues')} />
               </ListItemButton>
             </ListItem>
             <ListItem disablePadding>
-              <ListItemButton onClick={() => navigate('/map')}>
+              <ListItemButton onClick={() => navigateAndClose('/map')}>
                 <ListItemIcon><MapIcon /></ListItemIcon>
                 <ListItemText primary={t('navigation.map')} />
               </ListItemButton>
@@ -251,19 +256,19 @@ const Layout = ({ children }) => {
         ) : (
           <>
             <ListItem disablePadding>
-              <ListItemButton onClick={() => navigate('/map')}>
+              <ListItemButton onClick={() => navigateAndClose('/map')}>
                 <ListItemIcon><MapIcon /></ListItemIcon>
                 <ListItemText primary={t('navigation.map')} />
               </ListItemButton>
             </ListItem>
             <ListItem disablePadding>
-              <ListItemButton onClick={() => navigate('/login')}>
+              <ListItemButton onClick={() => navigateAndClose('/login')}>
                 <ListItemIcon><LoginIcon /></ListItemIcon>
                 <ListItemText primary={t('navigation.login')} />
               </ListItemButton>
             </ListItem>
             <ListItem disablePadding>
-              <ListItemButton onClick={() => navigate('/register')}>
+              <ListItemButton onClick={() => navigateAndClose('/register')}>
                 <ListItemIcon><PersonAddIcon /></ListItemIcon>
                 <ListItemText primary={t('navigation.register')} />
               </ListItemButton>
@@ -271,6 +276,28 @@ const Layout = ({ children }) => {
           </>
         )}
       </List>
+
+      {/* Settings section pushed to the bottom of mobile drawer */}
+      <Box sx={{ mt: 'auto', p: 3, borderTop: '1px solid rgba(255,255,255,0.08)', bgcolor: 'rgba(255,255,255,0.02)' }}>
+        <Box display="flex" alignItems="center" gap={1.5} mb={2.5} width="100%" justifyContent="center">
+          <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+            Language:
+          </Typography>
+          <LanguageSelector />
+        </Box>
+        <Box display="flex" alignItems="center" gap={2.5} width="100%" justifyContent="center">
+          <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+            Theme:
+          </Typography>
+          <InteractiveToggleButton 
+            onClick={(e) => toggleTheme(e.clientX, e.clientY)} 
+            sx={{ border: '1px solid rgba(255,255,255,0.12)' }}
+          >
+            <LightModeIcon sx={{ opacity: mode === 'dark' ? 1 : 0, transform: mode === 'dark' ? 'rotate(0deg) scale(1)' : 'rotate(90deg) scale(0)' }} />
+            <DarkModeIcon sx={{ opacity: mode === 'light' ? 1 : 0, transform: mode === 'light' ? 'rotate(0deg) scale(1)' : 'rotate(-90deg) scale(0)' }} />
+          </InteractiveToggleButton>
+        </Box>
+      </Box>
     </Box>
   );
 
@@ -353,7 +380,7 @@ const Layout = ({ children }) => {
               sx={{ 
                 fontWeight: 900, 
                 letterSpacing: '-0.5px', 
-                display: { xs: 'none', sm: 'block' },
+                display: 'block',
                 background: muiTheme.palette.mode === 'dark' 
                   ? 'linear-gradient(90deg, #ffffff 0%, #a1a1aa 100%)' 
                   : 'linear-gradient(90deg, #111827 0%, #4b5563 100%)',
@@ -370,26 +397,26 @@ const Layout = ({ children }) => {
           <Box sx={{ display: { xs: 'none', md: 'flex' }, flexGrow: 1, alignItems: 'center', gap: 1 }}>
             {isAuthenticated ? (
               <>
-                <NavButton active={location.pathname === '/'} onClick={() => navigate('/')} startIcon={<HomeIcon />}>Home</NavButton>
+                <NavButton active={location.pathname === '/'} onClick={() => navigate('/')} startIcon={<HomeIcon />}>{t('navigation.home')}</NavButton>
                 {user?.role === 'user' && (
                   <>
-                    <Tooltip title="My Issues">
-                      <NavButton active={location.pathname === '/my-issues'} onClick={() => navigate('/my-issues')} startIcon={<DashboardIcon />}>My Issues</NavButton>
+                    <Tooltip title={t('navigation.myIssues')}>
+                      <NavButton active={location.pathname === '/my-issues'} onClick={() => navigate('/my-issues')} startIcon={<DashboardIcon />}>{t('navigation.myIssues')}</NavButton>
                     </Tooltip>
-                    <Tooltip title="Report an Issue">
+                    <Tooltip title={t('navigation.report')}>
                       <NavButton active={location.pathname === '/report'} onClick={() => navigate('/report')} startIcon={<BugReportIcon />}>{t('navigation.report')}</NavButton>
                     </Tooltip>
                   </>
                 )}
                 {(user?.role === 'admin' || user?.role === 'super_admin') && (
-                  <NavButton active={location.pathname === '/admin'} onClick={() => navigate('/admin')} startIcon={<DashboardIcon />}>Admin Dashboard</NavButton>
+                  <NavButton active={location.pathname === '/admin'} onClick={() => navigate('/admin')} startIcon={<DashboardIcon />}>{t('admin.dashboard')}</NavButton>
                 )}
                 <NavButton active={location.pathname === '/issues'} onClick={() => navigate('/issues')} startIcon={<ListAltIcon />}>{t('navigation.issues')}</NavButton>
                 <NavButton active={location.pathname === '/map'} onClick={() => navigate('/map')} startIcon={<MapIcon />}>{t('navigation.map')}</NavButton>
               </>
             ) : (
               <>
-                <NavButton active={location.pathname === '/'} onClick={() => navigate('/')} startIcon={<HomeIcon />}>Home</NavButton>
+                <NavButton active={location.pathname === '/'} onClick={() => navigate('/')} startIcon={<HomeIcon />}>{t('navigation.home')}</NavButton>
                 <NavButton active={location.pathname === '/map'} onClick={() => navigate('/map')} startIcon={<MapIcon />}>{t('navigation.map')}</NavButton>
               </>
             )}
@@ -401,13 +428,15 @@ const Layout = ({ children }) => {
             {/* Theme Toggle Button */}
             <InteractiveToggleButton 
               onClick={(e) => toggleTheme(e.clientX, e.clientY)} 
-              sx={{ ml: 1 }}
+              sx={{ ml: 1, display: { xs: 'none', md: 'inline-flex' } }}
             >
               <LightModeIcon sx={{ opacity: mode === 'dark' ? 1 : 0, transform: mode === 'dark' ? 'rotate(0deg) scale(1)' : 'rotate(90deg) scale(0)' }} />
               <DarkModeIcon sx={{ opacity: mode === 'light' ? 1 : 0, transform: mode === 'light' ? 'rotate(0deg) scale(1)' : 'rotate(-90deg) scale(0)' }} />
             </InteractiveToggleButton>
 
-            <LanguageSelector />
+            <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+              <LanguageSelector />
+            </Box>
 
             {!isAuthenticated && (
               <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 1 }}>

@@ -30,7 +30,9 @@ const io = new Server(server, {
 });
 
 // Security middleware
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: false
+}));
 app.use(compression());
 
 // Rate limiting (disabled for development)

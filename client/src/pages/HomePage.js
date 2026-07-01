@@ -23,23 +23,23 @@ const HomePage = () => {
 
   const features = [
     {
-      title: t('issue.reportIssue', 'Report Issue'),
-      description: 'Report civic issues with photos and location',
+      title: t('navigation.report', 'Report Issue'),
+      description: t('home.featureReportDesc', 'Report civic issues with photos and location'),
       icon: '📱'
     },
     {
       title: t('issue.upvote', 'Vote & Discuss'),
-      description: 'Support issues in your community',
+      description: t('home.featureVoteDesc', 'Support issues in your community'),
       icon: '👍'
     },
     {
       title: t('navigation.map', 'Interactive Map'),
-      description: 'View issues on interactive maps',
+      description: t('home.featureMapDesc', 'View issues on interactive maps'),
       icon: '🗺️'
     },
     {
       title: t('admin.dashboard', 'Admin Dashboard'),
-      description: 'Track resolution progress',
+      description: t('home.featureAdminDesc', 'Track resolution progress'),
       icon: '📊'
     }
   ];
@@ -118,7 +118,7 @@ const HomePage = () => {
           className="parallax-slow"
           ref={headingRef}
         >
-          FixmyStreet: Report Civic Issues. Get Them Fixed.
+          {t('home.heroTitle', 'FixmyStreet: Report Civic Issues. Get Them Fixed.')}
         </Typography>
         <Typography
           sx={{
@@ -127,7 +127,7 @@ const HomePage = () => {
           }}
           paragraph
         >
-          Simple, transparent, and fast civic issue tracking for your city.
+          {t('home.heroSubtitle', 'Simple, transparent, and fast civic issue tracking for your city.')}
         </Typography>
         <Typography
           sx={{
@@ -137,7 +137,7 @@ const HomePage = () => {
           }}
           paragraph
         >
-          Snap a photo, add location, and submit. Track progress in real time.
+          {t('home.heroDesc', 'Snap a photo, add location, and submit. Track progress in real time.')}
         </Typography>
 
         {!isAuthenticated && (

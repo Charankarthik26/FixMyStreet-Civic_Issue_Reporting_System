@@ -15,15 +15,15 @@ router.post('/submit', [
   upload.array('images', 5),
   processImages,
   handleUploadError,
-  body('title').trim().isLength({ min: 5, max: 255 }),
-  body('description').trim().isLength({ min: 10, max: 2000 }),
+  body('title').trim().isLength({ min: 5, max: 255 }).withMessage('Title must be between 5 and 255 characters'),
+  body('description').trim().isLength({ min: 10, max: 2000 }).withMessage('Description must be between 10 and 2000 characters'),
   body('category').isIn([
     'electricity', 'water', 'sanitation', 'roads', 'streetlights', 'other'
-  ]),
-  body('latitude').isFloat({ min: -90, max: 90 }),
-  body('longitude').isFloat({ min: -180, max: 180 }),
-  body('userLatitude').optional().isFloat({ min: -90, max: 90 }),
-  body('userLongitude').optional().isFloat({ min: -180, max: 180 })
+  ]).withMessage('Please select a valid category'),
+  body('latitude').isFloat({ min: -90, max: 90 }).withMessage('Latitude must be a valid float between -90 and 90'),
+  body('longitude').isFloat({ min: -180, max: 180 }).withMessage('Longitude must be a valid float between -180 and 180'),
+  body('userLatitude').optional().isFloat({ min: -90, max: 90 }).withMessage('User latitude must be a valid float'),
+  body('userLongitude').optional().isFloat({ min: -180, max: 180 }).withMessage('User longitude must be a valid float')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -219,6 +219,17 @@ router.get('/', [
     let queryParams = [];
     let paramCount = 1;
 
+    // Filter by admin's categories if user is an admin
+    if (req.user && req.user.role === 'admin') {
+      if (req.user.admin_categories && req.user.admin_categories.length > 0) {
+        whereConditions.push(`i.category = ANY($${paramCount})`);
+        queryParams.push(req.user.admin_categories);
+        paramCount++;
+      } else {
+        whereConditions.push(`1 = 0`); // No access to any issues
+      }
+    }
+
     // Base query (simplified without PostGIS)
     let baseQuery = `
       SELECT 
@@ -398,12 +409,25 @@ router.get('/:id', [
       }
     }
 
+    // Get attachments (images)
+    let images = [];
+    try {
+      const attachmentsResult = await query(
+        'SELECT file_path FROM attachments WHERE issue_id = $1',
+        [id]
+      );
+      images = attachmentsResult.rows.map(row => row.file_path);
+    } catch (attachErr) {
+      console.log('Error fetching attachments:', attachErr.message);
+    }
+
     res.json({
       success: true,
       issue: {
         ...issue,
         comments: comments,
-        userVote: userVote
+        userVote: userVote,
+        images: images
       }
     });
 

@@ -18,7 +18,9 @@ import {
   Select,
   MenuItem,
   Paper,
-  Avatar
+  Avatar,
+  Dialog,
+  Zoom
 } from '@mui/material';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -60,14 +62,16 @@ const IssueDetailPage = () => {
   const [newStatus, setNewStatus] = useState('');
   const [statusUpdating, setStatusUpdating] = useState(false);
   const [adminError, setAdminError] = useState('');
+  const [statusComment, setStatusComment] = useState('');
+  const [voteSuccessDialog, setVoteSuccessDialog] = useState({ open: false, type: null });
 
   useEffect(() => {
     fetchIssue();
   }, [id]);
 
-  const fetchIssue = async () => {
+  const fetchIssue = async (showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) setLoading(true);
       const token = localStorage.getItem('token');
       const response = await fetch(`/api/issues/${id}`, {
         headers: {
@@ -84,7 +88,7 @@ const IssueDetailPage = () => {
     } catch (err) {
       setError(err.message);
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
@@ -101,13 +105,25 @@ const IssueDetailPage = () => {
         body: JSON.stringify({ voteType })
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const body = await response.json().catch(() => ({}));
-        throw new Error(body.message || 'Voting is currently unavailable');
+        throw new Error(data.message || 'Voting is currently unavailable');
       }
 
-      // Optimistic: adjust a local count if present
-      setIssue((prev) => prev ? { ...prev, severity_score: (prev.severity_score || 0) + (voteType === 'upvote' ? 1 : -1) } : prev);
+      // Update the local userVote state from the backend response
+      const newVoteType = data.data?.voteType !== undefined ? data.data.voteType : null;
+      setIssue((prev) => prev ? { ...prev, userVote: newVoteType } : prev);
+      
+      if (newVoteType) {
+        setVoteSuccessDialog({ open: true, type: newVoteType });
+        setTimeout(() => {
+          setVoteSuccessDialog(prev => ({ ...prev, open: false }));
+        }, 1800);
+      }
+      
+      // Refresh the issue details in the background to sync severity and vote counts
+      fetchIssue(false);
     } catch (e) {
       setVoteError(e.message);
     }
@@ -142,6 +158,10 @@ const IssueDetailPage = () => {
 
   const handleUpdateStatus = async () => {
     if (!newStatus) return;
+    if (newStatus === 'rejected' && (!statusComment || statusComment.trim().length < 5)) {
+      setAdminError('A rejection reason (at least 5 characters) is required.');
+      return;
+    }
     setAdminError('');
     setStatusUpdating(true);
     try {
@@ -152,13 +172,17 @@ const IssueDetailPage = () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ status: newStatus })
+        body: JSON.stringify({ 
+          status: newStatus,
+          comment: statusComment.trim() || undefined
+        })
       });
       if (!response.ok) {
         const body = await response.json().catch(() => ({}));
         throw new Error(body.message || 'Failed to update status');
       }
       setNewStatus('');
+      setStatusComment('');
       fetchIssue();
     } catch (e) {
       setAdminError(e.message);
@@ -383,6 +407,32 @@ const IssueDetailPage = () => {
                   </Box>
                 )}
 
+                {issue.images && issue.images.length > 0 && (
+                  <Box sx={{ mb: 4, mt: 3 }}>
+                    <Typography variant="h6" gutterBottom>
+                      Attached Images
+                    </Typography>
+                    <Grid container spacing={2}>
+                      {issue.images.map((image, index) => (
+                        <Grid item xs={12} sm={6} md={4} key={index}>
+                          <Box 
+                            component="img"
+                            src={image.startsWith('http') ? image : `http://localhost:5000${image}`}
+                            alt={`Issue attachment ${index + 1}`}
+                            sx={{
+                              width: '100%',
+                              height: 200,
+                              objectFit: 'cover',
+                              borderRadius: 2,
+                              boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                            }}
+                          />
+                        </Grid>
+                      ))}
+                    </Grid>
+                  </Box>
+                )}
+
                 {issue.severity_score > 0 && (
                   <>
                     <Divider sx={{ my: 3 }} />
@@ -423,11 +473,14 @@ const IssueDetailPage = () => {
                     <Alert severity="error" sx={{ mb: 2 }}>{adminError}</Alert>
                   )}
                   
-                  <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+                   <FormControl fullWidth size="small" sx={{ mb: 2 }}>
                     <InputLabel>Update Status</InputLabel>
                     <Select
                       value={newStatus || issue.status}
-                      onChange={(e) => setNewStatus(e.target.value)}
+                      onChange={(e) => {
+                        setNewStatus(e.target.value);
+                        setStatusComment(''); // Reset comment when changing status selection
+                      }}
                       label="Update Status"
                     >
                       <MenuItem value="reported">Reported</MenuItem>
@@ -437,13 +490,34 @@ const IssueDetailPage = () => {
                       <MenuItem value="rejected">Rejected</MenuItem>
                     </Select>
                   </FormControl>
+
+                  {newStatus && newStatus !== issue.status && (
+                    <TextField
+                      fullWidth
+                      size="small"
+                      label={newStatus === 'rejected' ? "Rejection Reason (Required)" : "Status Update Comment (Optional)"}
+                      placeholder={newStatus === 'rejected' ? "Please explain why this issue is being rejected..." : "Add any notes about this status update..."}
+                      value={statusComment}
+                      onChange={(e) => setStatusComment(e.target.value)}
+                      multiline
+                      rows={2}
+                      required={newStatus === 'rejected'}
+                      error={newStatus === 'rejected' && statusComment.trim().length < 5}
+                      helperText={newStatus === 'rejected' && statusComment.trim().length < 5 ? "Rejection reason must be at least 5 characters" : ""}
+                      sx={{ mb: 2 }}
+                    />
+                  )}
                   
                   <Button 
                     variant="contained" 
                     color="primary"
                     fullWidth 
                     onClick={handleUpdateStatus}
-                    disabled={statusUpdating || (!newStatus || newStatus === issue.status)}
+                    disabled={
+                      statusUpdating || 
+                      (!newStatus || newStatus === issue.status) || 
+                      (newStatus === 'rejected' && statusComment.trim().length < 5)
+                    }
                     sx={{ 
                       mt: 1, 
                       py: 1.5, 
@@ -479,6 +553,16 @@ const IssueDetailPage = () => {
                       sx={{ mt: 1 }}
                     />
                   </Box>
+                  {issue.status === 'rejected' && issue.rejection_reason && (
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">
+                        Rejection Reason
+                      </Typography>
+                      <Alert severity="error" sx={{ mt: 1 }}>
+                        <Typography variant="body2">{issue.rejection_reason}</Typography>
+                      </Alert>
+                    </Box>
+                  )}
                   <Box>
                     <Typography variant="body2" color="text.secondary">
                       Priority Level
@@ -594,6 +678,102 @@ const IssueDetailPage = () => {
           </Grid>
         </Grid>
       </Box>
+
+      {/* Vote Success Animation Dialog */}
+      <Dialog
+        open={voteSuccessDialog.open}
+        TransitionComponent={Zoom}
+        transitionDuration={400}
+        PaperProps={{
+          sx: {
+            bgcolor: 'rgba(15, 23, 42, 0.75)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            borderRadius: 4,
+            p: 4,
+            textAlign: 'center',
+            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.5)',
+            maxWidth: '300px',
+            overflow: 'hidden'
+          }
+        }}
+        slotProps={{
+          backdrop: {
+            sx: {
+              bgcolor: 'rgba(0, 0, 0, 0.4)',
+              backdropFilter: 'blur(4px)'
+            }
+          }
+        }}
+      >
+        <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center">
+          {voteSuccessDialog.type === 'upvote' ? (
+            <>
+              <Box 
+                className="animate-thumbs-up"
+                sx={{ 
+                  width: 80, 
+                  height: 80, 
+                  borderRadius: '50%', 
+                  bgcolor: 'rgba(46, 125, 50, 0.15)', 
+                  color: '#4caf50', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  mb: 2.5,
+                  boxShadow: '0 0 20px rgba(76, 175, 80, 0.2)'
+                }}
+              >
+                <ThumbUp sx={{ fontSize: 44 }} />
+              </Box>
+              <Typography 
+                variant="h6" 
+                sx={{ 
+                  fontWeight: 800, 
+                  background: 'linear-gradient(90deg, #81c784, #4caf50)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  m: 0
+                }}
+              >
+                Upvoted Successfully!
+              </Typography>
+            </>
+          ) : (
+            <>
+              <Box 
+                className="animate-thumbs-down"
+                sx={{ 
+                  width: 80, 
+                  height: 80, 
+                  borderRadius: '50%', 
+                  bgcolor: 'rgba(211, 47, 47, 0.15)', 
+                  color: '#f44336', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  mb: 2.5,
+                  boxShadow: '0 0 20px rgba(244, 67, 54, 0.2)'
+                }}
+              >
+                <ThumbDown sx={{ fontSize: 44 }} />
+              </Box>
+              <Typography 
+                variant="h6" 
+                sx={{ 
+                  fontWeight: 800, 
+                  background: 'linear-gradient(90deg, #e57373, #f44336)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  m: 0
+                }}
+              >
+                Downvoted Successfully!
+              </Typography>
+            </>
+          )}
+        </Box>
+      </Dialog>
     </Container>
   );
 };

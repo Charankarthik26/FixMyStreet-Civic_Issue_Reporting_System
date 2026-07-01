@@ -111,6 +111,10 @@ const ReportIssuePage = () => {
           photo: null
         });
       } else {
+        if (result.errors && Array.isArray(result.errors)) {
+          const errorMsgs = result.errors.map(err => err.msg).join(', ');
+          throw new Error(`Validation failed: ${errorMsgs}`);
+        }
         throw new Error(result.message || 'Failed to report issue');
       }
     } catch (err) {

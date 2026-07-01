@@ -58,7 +58,8 @@ CREATE TABLE issues (
     ticket_number VARCHAR(20) UNIQUE, -- Auto-generated ticket number
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    resolved_at TIMESTAMP
+    resolved_at TIMESTAMP,
+    rejection_reason TEXT
 );
 
 -- Ticket timeline table for tracking progress
@@ -217,7 +218,7 @@ BEGIN
                 description_text := 'Issue has been resolved';
             WHEN 'rejected' THEN
                 action_text := 'rejected';
-                description_text := 'Issue has been rejected';
+                description_text := COALESCE(NEW.rejection_reason, 'Issue has been rejected');
             ELSE
                 action_text := 'status_changed';
                 description_text := 'Issue status updated to ' || NEW.status;
@@ -237,3 +238,51 @@ CREATE TRIGGER add_timeline_entry_trigger
     AFTER UPDATE ON issues
     FOR EACH ROW
     EXECUTE FUNCTION add_timeline_entry();
+
+-- Create issue_votes table
+CREATE TABLE issue_votes (
+    id SERIAL PRIMARY KEY,
+    issue_id INTEGER REFERENCES issues(id) ON DELETE CASCADE,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    vote_type VARCHAR(10) CHECK (vote_type IN ('upvote', 'downvote')),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(issue_id, user_id)
+);
+
+CREATE INDEX idx_issue_votes_issue ON issue_votes(issue_id);
+CREATE INDEX idx_issue_votes_user ON issue_votes(user_id);
+
+-- Function to update issue severity score
+CREATE OR REPLACE FUNCTION update_issue_severity(issue_id_param INTEGER)
+RETURNS VOID AS $$
+DECLARE
+    upvotes INTEGER;
+    downvotes INTEGER;
+    base_score INTEGER;
+BEGIN
+    SELECT COUNT(*) INTO upvotes FROM issue_votes 
+    WHERE issue_id = issue_id_param AND vote_type = 'upvote';
+    
+    SELECT COUNT(*) INTO downvotes FROM issue_votes 
+    WHERE issue_id = issue_id_param AND vote_type = 'downvote';
+    
+    base_score := 10; -- Base severity score
+    
+    UPDATE issues SET 
+        severity_score = base_score + (upvotes * 2) - (downvotes * 1)
+    WHERE id = issue_id_param;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger to automatically update severity score when votes change
+CREATE OR REPLACE FUNCTION trigger_update_severity()
+RETURNS TRIGGER AS $$
+BEGIN
+    PERFORM update_issue_severity(COALESCE(NEW.issue_id, OLD.issue_id));
+    RETURN COALESCE(NEW, OLD);
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_severity_trigger
+    AFTER INSERT OR UPDATE OR DELETE ON issue_votes
+    FOR EACH ROW EXECUTE FUNCTION trigger_update_severity();

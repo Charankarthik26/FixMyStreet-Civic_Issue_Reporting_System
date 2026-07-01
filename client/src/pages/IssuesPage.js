@@ -27,10 +27,12 @@ import {
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const IssuesPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [issues, setIssues] = useState([]);
   const [filteredIssues, setFilteredIssues] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -43,22 +45,23 @@ const IssuesPage = () => {
   const [locationState, setLocationState] = useState({ latitude: null, longitude: null, radiusKm: 5, usedNearby: false });
 
   useEffect(() => {
-    // Try to use browser location to fetch nearby issues
+    // Fetch all issues immediately so the page is responsive and interactive right away
+    fetchIssues(null, null, null, true);
+
+    // Try to get browser location to fetch nearby issues in the background
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           const coords = { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
           setLocationState(prev => ({ ...prev, ...coords, usedNearby: true }));
-          fetchIssues(coords.latitude, coords.longitude, locationState.radiusKm);
+          // Fetch nearby issues in the background without blocking the UI
+          fetchIssues(coords.latitude, coords.longitude, locationState.radiusKm, false);
         },
-        () => {
-          // Permission denied or error: fallback to all issues
-          fetchIssues();
+        (err) => {
+          console.log('Geolocation skipped or failed:', err.message);
         },
-        { enableHighAccuracy: true, timeout: 10000 }
+        { enableHighAccuracy: false, timeout: 4000 } // shorter timeout, do not require high accuracy for speed
       );
-    } else {
-      fetchIssues();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -67,11 +70,12 @@ const IssuesPage = () => {
     filterIssues();
   }, [issues, filters]);
 
-  const fetchIssues = async (latitude, longitude, radiusKm) => {
+  const fetchIssues = async (latitude, longitude, radiusKm, showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) setLoading(true);
       const token = localStorage.getItem('token');
-      const query = (latitude && longitude)
+      const hasCoords = typeof latitude === 'number' && typeof longitude === 'number';
+      const query = hasCoords
         ? `?latitude=${encodeURIComponent(latitude)}&longitude=${encodeURIComponent(longitude)}&radius=${encodeURIComponent(radiusKm || 5)}`
         : '';
       const response = await fetch(`/api/issues${query}`, {
@@ -89,7 +93,7 @@ const IssuesPage = () => {
     } catch (err) {
       setError(err.message);
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
@@ -230,12 +234,22 @@ const IssuesPage = () => {
                     onChange={(e) => handleFilterChange('category', e.target.value)}
                   >
                     <MenuItem value="all">All Categories</MenuItem>
-                    <MenuItem value="electricity">Electricity</MenuItem>
-                    <MenuItem value="water">Water</MenuItem>
-                    <MenuItem value="sanitation">Sanitation</MenuItem>
-                    <MenuItem value="roads">Roads</MenuItem>
-                    <MenuItem value="streetlights">Streetlights</MenuItem>
-                    <MenuItem value="other">Other</MenuItem>
+                    {(!user || user.role !== 'admin') ? (
+                      [
+                        <MenuItem key="electricity" value="electricity">Electricity</MenuItem>,
+                        <MenuItem key="water" value="water">Water</MenuItem>,
+                        <MenuItem key="sanitation" value="sanitation">Sanitation</MenuItem>,
+                        <MenuItem key="roads" value="roads">Roads</MenuItem>,
+                        <MenuItem key="streetlights" value="streetlights">Streetlights</MenuItem>,
+                        <MenuItem key="other" value="other">Other</MenuItem>
+                      ]
+                    ) : (
+                      (user.adminCategories || []).map(cat => (
+                        <MenuItem key={cat} value={cat}>
+                          {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                        </MenuItem>
+                      ))
+                    )}
                   </Select>
                 </FormControl>
               </Grid>

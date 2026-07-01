@@ -227,9 +227,16 @@ router.patch('/issues/:id/status', [
     const { status, comment } = req.body;
     const userId = req.user.id;
 
+    if (status === 'rejected' && (!comment || comment.trim().length < 5)) {
+      return res.status(400).json({
+        success: false,
+        message: 'A rejection reason (at least 5 characters) is required when rejecting an issue.'
+      });
+    }
+
     // Check if issue exists and get current status
     const issueResult = await query(
-      'SELECT id, status, category, reporter_id FROM issues WHERE id = $1',
+      'SELECT id, status, category, reporter_id, ticket_number FROM issues WHERE id = $1',
       [id]
     );
 
@@ -251,19 +258,30 @@ router.patch('/issues/:id/status', [
     }
 
     // Update issue status
-    const updateResult = await query(`
-      UPDATE issues 
-      SET status = $1, updated_at = CURRENT_TIMESTAMP, assigned_admin_id = $2
-      WHERE id = $3
-      RETURNING *
-    `, [status, userId, id]);
+    let updateResult;
+    if (status === 'rejected') {
+      updateResult = await query(`
+        UPDATE issues 
+        SET status = $1, updated_at = CURRENT_TIMESTAMP, assigned_admin_id = $2, rejection_reason = $3
+        WHERE id = $4
+        RETURNING *
+      `, [status, userId, comment, id]);
+    } else {
+      updateResult = await query(`
+        UPDATE issues 
+        SET status = $1, updated_at = CURRENT_TIMESTAMP, assigned_admin_id = $2
+        WHERE id = $3
+        RETURNING *
+      `, [status, userId, id]);
+    }
 
     // Add comment if provided
     if (comment) {
+      const isInternal = (status !== 'rejected'); // Rejection reason is public, other status comments are internal
       await query(`
         INSERT INTO comments (issue_id, user_id, comment, is_internal)
-        VALUES ($1, $2, $3, true)
-      `, [id, userId, comment]);
+        VALUES ($1, $2, $3, $4)
+      `, [id, userId, comment, isInternal]);
     }
 
     // Create notification for user

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Container, Paper, TextField, Button, Typography, Box, Alert } from '@mui/material';
+import { Container, Paper, TextField, Button, Typography, Box, Alert, ToggleButton, ToggleButtonGroup } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
@@ -12,6 +12,7 @@ const LoginPage = () => {
     email: '',
     password: ''
   });
+  const [role, setRole] = useState('user');
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -22,11 +23,18 @@ const LoginPage = () => {
     if (error) clearError();
   };
 
+  const handleRoleChange = (event, newRole) => {
+    if (newRole !== null) {
+      setRole(newRole);
+      if (error) clearError();
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     
-    const result = await login(formData.email, formData.password);
+    const result = await login(formData.email, formData.password, role);
     
     if (result.success) {
       navigate('/issues');
@@ -48,6 +56,20 @@ const LoginPage = () => {
               {error}
             </Alert>
           )}
+
+          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+            <ToggleButtonGroup
+              color="primary"
+              value={role}
+              exclusive
+              onChange={handleRoleChange}
+              aria-label="Login Role"
+              fullWidth
+            >
+              <ToggleButton value="user">User</ToggleButton>
+              <ToggleButton value="admin">Admin</ToggleButton>
+            </ToggleButtonGroup>
+          </Box>
 
           <form onSubmit={handleSubmit}>
             <TextField

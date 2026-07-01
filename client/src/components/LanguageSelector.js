@@ -9,7 +9,8 @@ const languages = [
   { code: 'bn', name: 'Bengali', nativeName: 'বাংলা' },
   { code: 'or', name: 'Odia', nativeName: 'ଓଡ଼ିଆ' },
   { code: 'ur', name: 'Urdu', nativeName: 'اردو' },
-  { code: 'sa', name: 'Sanskrit', nativeName: 'संस्कृतम्' }
+  { code: 'sa', name: 'Sanskrit', nativeName: 'संस्कृतम्' },
+  { code: 'sat', name: 'Santali', nativeName: 'ᱥᱟᱱᱛᱟᱲᱤ' }
 ];
 
 const LanguageSelector = () => {

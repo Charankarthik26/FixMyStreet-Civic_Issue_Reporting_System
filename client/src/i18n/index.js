@@ -6,6 +6,11 @@ import Backend from 'i18next-http-backend';
 // Import translation files
 import enTranslation from '../locales/en/translation.json';
 import hiTranslation from '../locales/hi/translation.json';
+import bnTranslation from '../locales/bn/translation.json';
+import orTranslation from '../locales/or/translation.json';
+import urTranslation from '../locales/ur/translation.json';
+import saTranslation from '../locales/sa/translation.json';
+import satTranslation from '../locales/sat/translation.json';
 
 const resources = {
   en: {
@@ -13,6 +18,21 @@ const resources = {
   },
   hi: {
     translation: hiTranslation
+  },
+  bn: {
+    translation: bnTranslation
+  },
+  or: {
+    translation: orTranslation
+  },
+  ur: {
+    translation: urTranslation
+  },
+  sa: {
+    translation: saTranslation
+  },
+  sat: {
+    translation: satTranslation
   }
 };
 
@@ -38,7 +58,7 @@ i18n
       loadPath: '/locales/{{lng}}/{{ns}}.json',
     },
     
-    supportedLngs: ['en', 'hi'],
+    supportedLngs: ['en', 'hi', 'bn', 'or', 'ur', 'sa', 'sat'],
     
     // Language names for display
     load: 'languageOnly',

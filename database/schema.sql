@@ -94,8 +94,8 @@ CREATE TABLE issues (
     acknowledged_at TIMESTAMP,
     resolved_at TIMESTAMP,
     estimated_resolution_date DATE,
-    actual_resolution_date DATE,
     resolution_notes TEXT,
+    rejection_reason TEXT,
     is_verified BOOLEAN DEFAULT FALSE,
     verification_distance DECIMAL(10,2), -- Distance between user and issue location
     upvote_count INTEGER DEFAULT 0,
@@ -357,7 +357,7 @@ BEGIN
                 description_text := 'Issue has been resolved';
             WHEN 'rejected' THEN
                 action_text := 'rejected';
-                description_text := 'Issue has been rejected';
+                description_text := COALESCE(NEW.rejection_reason, 'Issue has been rejected');
             ELSE
                 action_text := 'status_changed';
                 description_text := 'Issue status updated to ' || NEW.status;

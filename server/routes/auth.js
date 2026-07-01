@@ -138,7 +138,7 @@ router.post('/login', [
       });
     }
 
-    const { email, password } = req.body;
+    const { email, password, role } = req.body;
 
     // Find user
     let userResult;
@@ -175,6 +175,21 @@ router.post('/login', [
         success: false,
         message: 'Invalid credentials'
       });
+    }
+
+    // Enforce strict role matching
+    if (role) {
+      if (role === 'admin' && !['admin', 'super_admin'].includes(user.role)) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied. You do not have admin privileges.'
+        });
+      } else if (role === 'user' && user.role !== 'user') {
+        return res.status(403).json({
+          success: false,
+          message: 'Please select Admin login for your account.'
+        });
+      }
     }
 
     // Check user status

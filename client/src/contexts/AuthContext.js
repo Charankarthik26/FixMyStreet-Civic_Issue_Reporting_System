@@ -101,13 +101,14 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // Login function
-  const login = async (email, password) => {
+  const login = async (email, password, role = 'user') => {
     dispatch({ type: 'LOGIN_START' });
     
     try {
       const response = await axios.post('/api/auth/login', {
         email,
         password,
+        role,
       });
 
       const { token, user } = response.data.data;

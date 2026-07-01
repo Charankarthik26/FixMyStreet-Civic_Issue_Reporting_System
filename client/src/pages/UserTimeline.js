@@ -180,7 +180,8 @@ const UserTimeline = () => {
   };
 
   const getTimelineSteps = (timeline) => {
-    const statusOrder = ['reported', 'acknowledged', 'in_progress', 'resolved'];
+    const hasRejected = timeline.some(entry => entry.new_status === 'rejected');
+    const statusOrder = ['reported', 'acknowledged', 'in_progress', hasRejected ? 'rejected' : 'resolved'];
     const steps = [];
     
     statusOrder.forEach(status => {
@@ -371,6 +372,15 @@ const UserTimeline = () => {
                     <Typography variant="body2" color="text.secondary">
                       Department: {selectedIssue.issue.department_name || 'Not assigned'}
                     </Typography>
+
+                    {selectedIssue.issue.status === 'rejected' && selectedIssue.issue.rejection_reason && (
+                      <Box mt={2}>
+                        <Alert severity="error" className="glass-panel">
+                          <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>Rejection Reason:</Typography>
+                          <Typography variant="body2">{selectedIssue.issue.rejection_reason}</Typography>
+                        </Alert>
+                      </Box>
+                    )}
                   </CardContent>
                 </Card>
 
