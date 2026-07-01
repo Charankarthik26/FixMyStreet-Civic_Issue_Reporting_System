@@ -88,6 +88,7 @@ const { upload, handleUploadError } = require('../middleware/upload');
 
 // Update user profile
 router.put('/profile', 
+  authenticateToken,
   upload.single('profileImage'),
   [
     body('firstName').optional().trim().isLength({ min: 1, max: 50 }).withMessage('First Name must be between 1 and 50 characters'),
