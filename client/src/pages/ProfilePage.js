@@ -109,6 +109,7 @@ const ProfilePage = () => {
     try {
       setSaving(true);
       setError(null);
+      setSuccess(null);
       
       const formData = new FormData();
       formData.append('firstName', firstName);

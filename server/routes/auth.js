@@ -379,9 +379,33 @@ router.put('/profile', [
     }
 
     if (updates.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'No fields to update'
+      const userResult = await query(
+        `SELECT id, email, phone, first_name, last_name, status, is_admin, 
+                department, created_at, last_login, preferred_language, profile_image,
+                aadhar_last_four FROM users WHERE id = $1`,
+        [userId]
+      );
+      const user = userResult.rows[0];
+      return res.json({
+        success: true,
+        message: 'Profile is already up to date',
+        data: {
+          user: {
+            id: user.id,
+            email: user.email,
+            phone: user.phone,
+            firstName: user.first_name,
+            lastName: user.last_name,
+            status: user.status,
+            isAdmin: user.is_admin,
+            department: user.department,
+            createdAt: user.created_at,
+            lastLogin: user.last_login,
+            preferredLanguage: user.preferred_language,
+            profileImage: user.profile_image,
+            aadharLastFour: user.aadhar_last_four
+          }
+        }
       });
     }
 
